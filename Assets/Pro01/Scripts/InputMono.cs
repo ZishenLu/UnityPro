@@ -6,6 +6,7 @@ enum SpaceType
 {
     GridCell = 0,
     QuadTree,
+    BVHTree,
 }
 
 public class InputMono : MonoBehaviour
@@ -40,8 +41,9 @@ public class InputMono : MonoBehaviour
             GameObject go = Instantiate(_go);
             go.transform.localPosition = new Vector3(Random.Range(0, 100), 0, Random.Range(0, 100));
             _list.Add(go);
-            _factory.AddGameObject(go);
         }
+
+        _factory.Build(_list);
     }
 
     private void SetSpace()
@@ -58,6 +60,10 @@ public class InputMono : MonoBehaviour
                 quadTree.Init(new Rect(0, 0, 100, 100), 5);
                 _factory = new SpaceDivideFactory(quadTree);
                 break;
+            case SpaceType.BVHTree:
+                var bvhTree = new BVHTree();
+                _factory = new SpaceDivideFactory(bvhTree);
+                break;
         }
     }
 
@@ -68,6 +74,14 @@ public class InputMono : MonoBehaviour
             var gos = _factory.GetGameObjectsByNear(new Rect(0, 0, 18, 18));
             Debug.Log(gos.Count);
             RenderColor(gos);
+        }
+    }
+
+    void OnDrawGizmos()
+    {
+        if (_factory != null)
+        {
+            _factory.DebugDraw();
         }
     }
 

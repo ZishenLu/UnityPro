@@ -28,7 +28,15 @@ class QuadTree : ISpace
 
     private bool _isDivide => _children.Count > 0;
 
-    public override void AddGameObject(GameObject go)
+    public override void Build(List<GameObject> objects)
+    {
+        for (int i = 0; i < objects.Count; i++)
+        {
+            AddGameObject(objects[i]);
+        }
+    }
+
+    public void AddGameObject(GameObject go)
     {
         var pos = go.transform.localPosition;
         if (!_rect.Contains(new Vector2(pos.x, pos.z)))
@@ -49,6 +57,24 @@ class QuadTree : ISpace
             {
                 _children[i].AddGameObject(go);
             }
+        }
+    }
+
+    public override void DebugDraw()
+    {
+        if (_isDivide)
+        {
+            for (int i = 0; i < _children.Count; i++)
+            {
+                _children[i].DebugDraw();
+            }
+        }
+        //else
+        {
+            Gizmos.DrawLine(new Vector3(_rect.x, 0, _rect.y), new Vector3(_rect.x + _rect.width, 0, _rect.y));
+            Gizmos.DrawLine(new Vector3(_rect.x + _rect.width, 0, _rect.y), new Vector3(_rect.x + _rect.width, 0, _rect.y + _rect.height));
+            Gizmos.DrawLine(new Vector3(_rect.x + _rect.width, 0, _rect.y + _rect.height), new Vector3(_rect.x, 0, _rect.y + _rect.height));
+            Gizmos.DrawLine(new Vector3(_rect.x, 0, _rect.y + _rect.height), new Vector3(_rect.x, 0, _rect.y));
         }
     }
 

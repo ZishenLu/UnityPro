@@ -12,7 +12,15 @@ class GridCell : ISpace
         _dic = new Dictionary<Vector2Int, List<GameObject>>();
     }
 
-    public override void AddGameObject(GameObject go)
+    public override void Build(List<GameObject> objects)
+    {
+        for (int i = 0; i < objects.Count; i++)
+        {
+            AddGameObject(objects[i]);
+        }
+    }
+
+    public void AddGameObject(GameObject go)
     {
         Vector2Int cell = GetCell(go.transform.localPosition);
         if (!_dic.ContainsKey(cell))
@@ -45,6 +53,11 @@ class GridCell : ISpace
             list.AddRange(GetGameObjects(cells[i]));
         }
         return list;
+    }
+
+    public override void DebugDraw()
+    {
+        //throw new System.NotImplementedException();
     }
 
     private List<Vector2Int> GetVector2Ints(Rect range)

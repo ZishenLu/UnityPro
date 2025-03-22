@@ -3,9 +3,11 @@ using UnityEngine;
 
 abstract class ISpace
 {
-    public abstract void AddGameObject(GameObject go);
+    public abstract void Build(List<GameObject> objects);
 
     public abstract List<GameObject> GetGameObjectsByNear(Rect range);
+
+    public abstract void DebugDraw();
 }
 
 class SpaceDivideFactory
@@ -18,13 +20,18 @@ class SpaceDivideFactory
         Debug.Log("Space Type : " + space.GetType().FullName);
     }
 
-    public void AddGameObject(GameObject go)
+    public void Build(List<GameObject> objects)
     {
-        _space.AddGameObject(go);
+        _space.Build(objects);
     }
 
     public List<GameObject> GetGameObjectsByNear(Rect rect)
     {
         return _space.GetGameObjectsByNear(rect);
+    }
+
+    public void DebugDraw()
+    {
+        _space.DebugDraw();
     }
 }
