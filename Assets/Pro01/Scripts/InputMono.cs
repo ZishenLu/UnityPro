@@ -7,6 +7,7 @@ enum SpaceType
     GridCell = 0,
     QuadTree,
     BVHTree,
+    KDTree
 }
 
 public class InputMono : MonoBehaviour
@@ -64,6 +65,10 @@ public class InputMono : MonoBehaviour
                 var bvhTree = new BVHTree();
                 _factory = new SpaceDivideFactory(bvhTree);
                 break;
+            case SpaceType.KDTree:
+                var kdTree = new KDTree();
+                _factory = new SpaceDivideFactory(kdTree);
+                break;
         }
     }
 
@@ -71,7 +76,7 @@ public class InputMono : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.W))
         {
-            var gos = _factory.GetGameObjectsByNear(new Rect(0, 0, 18, 18));
+            var gos = _factory.GetGameObjectsByNear(new Rect(10, 10, 18, 18));
             Debug.Log(gos.Count);
             RenderColor(gos);
         }

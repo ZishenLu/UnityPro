@@ -40,6 +40,13 @@ class BVHTree : ISpace
 
     public override void Build(List<GameObject> objects)
     {
+        objects.Sort((a, b) => {
+            if (a.transform.position.x != b.transform.position.x)
+            {
+                return a.transform.position.x.CompareTo(b.transform.position.x);
+            }
+            return a.transform.position.z.CompareTo(b.transform.position.z);
+        });
         root = BuildRecursive(objects, 0, objects.Count - 1);
     }
 
