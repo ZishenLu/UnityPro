@@ -1,0 +1,51 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+struct MeshP
+{
+    float4x4 mat;
+    float4 col;
+};
+
+AppendStructuredBuffer<MeshP> Result;
+uint Count;
+float4 Panel[6];
+
+bool InSide(float3 pos, float4 panel)
+{
+    float3 normal = abs(panel.xyz);
+    float dis = dot(pos, panel.xyz) - dot(normal, float3(0.5, 0.5, 0.5));
+    return dis < panel.w;
+}
+
+float3 rand(uint3 seed)
+{
+    return frac(dot(float3(seed) / Count, float3(12.9898, 78.233, 45.164)) * 43758.5453);
+}
+
+[numthreads(640,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    if(id.x >= Count)
+        return;
+    MeshP m;
+    float x = ((float) (id % 100) - 50) * 2;
+    float z = ((float) (id / 100) - 50) * 2;
+    
+    float3 pos = float3(x, 0.5, z);
+    bool inside = true;
+    for(uint i = 0; i < 6; i++)
+    {
+        inside = inside && InSide(pos, Panel[i]);
+    }
+    if (inside)
+    {
+        m.mat = float4x4(1.0, 0.0, 0.0, x,
+                     0.0, 1.0, 0.0, 0.0,
+                     0.0, 0.0, 1.0, z,
+                     0.0, 0.0, 0.0, 1.0);
+        float3 col = lerp(float3(1.0, 0.0, 0.0), float3(0.0, 1.0, 0.0), rand(id).x);
+        m.col = float4(col, 1.0);
+        Result.Append(m);
+    }
+}
