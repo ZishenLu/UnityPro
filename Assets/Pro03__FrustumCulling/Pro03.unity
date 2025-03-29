@@ -424,7 +424,7 @@ MonoBehaviour:
   mat: {fileID: 2100000, guid: 2fb57748369c516418d967204bb3e1e1, type: 2}
   go: {fileID: 2514465204079290687, guid: cc9eca11866a434449e1c681c7f10acb, type: 3}
   count: 10000
-  cullingShader: {fileID: 7200000, guid: 606ced58e8e8ad446a982a16284116de, type: 3}
+  cullingShader: {fileID: 7200000, guid: fdc9917d33e35594e802cb66a316f90a, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

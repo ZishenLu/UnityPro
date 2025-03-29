@@ -46,7 +46,7 @@ public class FrustumCulling : MonoBehaviour
         cullingShader.SetVectorArray("Panel", frustumPlanes);
         cullingShader.Dispatch(kernel, 1 + count / 640, 1, 1);
         mat.SetBuffer("_MeshProps", cullingBuffer);
-        ComputeBuffer.CopyCount(cullingBuffer, argsBuffer, 0);
+        ComputeBuffer.CopyCount(cullingBuffer, argsBuffer, sizeof(int));
     }
 
     void Update()

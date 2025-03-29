@@ -45,11 +45,14 @@ public static class CullTool
         planes[1] = GetPlane(cameraPosition, points[3], points[1]);//right
         planes[2] = GetPlane(cameraPosition, points[1], points[0]);//bottom
         planes[3] = GetPlane(cameraPosition, points[2], points[3]);//up
-        float disNear = Vector3.Dot((forward * camera.nearClipPlane) + cameraPosition, forward);
-        float disFar = Vector3.Dot((forward * camera.farClipPlane) + cameraPosition, forward);
+        //float disNear = Vector3.Dot((forward * camera.nearClipPlane) + cameraPosition, forward);
+        //float disFar = Vector3.Dot((forward * camera.farClipPlane) + cameraPosition, forward);
 
-        planes[4] = new Vector4(-forward.x, -forward.y, -forward.z, -disNear);//near
-        planes[5] = new Vector4(forward.x, forward.y, forward.z, disFar);//far
+        //planes[4] = new Vector4(-forward.x, -forward.y, -forward.z, -disNear);//near
+        //planes[5] = new Vector4(forward.x, forward.y, forward.z, disFar);//far
+
+        planes[4] = GetPlane(-transform.forward, transform.position + transform.forward * camera.nearClipPlane);//near
+        planes[5] = GetPlane(transform.forward, transform.position + transform.forward * camera.farClipPlane);//far
         return planes;
     }
 }

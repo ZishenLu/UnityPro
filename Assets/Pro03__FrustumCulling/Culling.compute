@@ -15,7 +15,7 @@ bool InSide(float3 pos, float4 panel)
 {
     float3 normal = abs(panel.xyz);
     float dis = dot(pos, panel.xyz) - dot(normal, float3(0.5, 0.5, 0.5));
-    return dis < panel.w;
+    return dis < -panel.w;
 }
 
 float3 rand(uint3 seed)
@@ -32,9 +32,9 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     float x = ((float) (id % 100) - 50) * 2;
     float z = ((float) (id / 100) - 50) * 2;
     
-    float3 pos = float3(x, 0.5, z);
+    float3 pos = float3(x, 0, z);
     bool inside = true;
-    for(uint i = 0; i < 6; i++)
+    for (uint i = 0; i < 6; i++)
     {
         inside = inside && InSide(pos, Panel[i]);
     }
