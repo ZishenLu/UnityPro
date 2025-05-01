@@ -29,7 +29,7 @@ public class FrustumCulling : MonoBehaviour
         argsBuffer = new ComputeBuffer(1, args.Length * sizeof(uint), ComputeBufferType.IndirectArguments);
         argsBuffer.SetData(args);
         cullingBuffer = new ComputeBuffer(count, 16 * sizeof(float) + 4 * sizeof(float), ComputeBufferType.Append);
-        
+        //GeometryUtility.CalculateFrustumPlanes(Camera.main, new Plane[6]);
         UpdateShader();
     }
 

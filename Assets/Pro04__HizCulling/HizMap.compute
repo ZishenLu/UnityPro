@@ -1,0 +1,41 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel ComputeHizMap
+#pragma kernel SampleDepth
+
+RWTexture2D<float> Source;
+RWTexture2D<float> Result;
+float _Size;
+
+[numthreads(8,8,1)]
+void ComputeHizMap(uint2 id : SV_DispatchThreadID)
+{
+    if(id.x >= _Size || id.y >= _Size / 2)
+        return;
+    uint2 src = id.xy * 2;
+    
+    float d1 = Source[src];
+    float d2 = Source[src + uint2(1, 0)];
+    float d3 = Source[src + uint2(1, 1)];
+    float d4 = Source[src + uint2(0, 1)];
+    
+    #ifdef UNITY_REVERSED_Z
+        float value = min(min(d1, d2), min(d3, d4));
+        Result[id.xy] = value;
+    #else
+        float value = max(max(d1, d2), max(d3, d4));
+        Result[id.xy] = value;
+    #endif
+}
+
+Texture2D<float> Input;
+SamplerState sampler_Input;
+RWTexture2D<float> Output;
+
+float2 _outSize;
+
+[numthreads(8, 8, 1)]
+void SampleDepth(uint3 id : SV_DispatchThreadID)
+{
+    float2 uv = float2(id.x / _outSize.x, id.y / _outSize.y);
+    Output[id.xy] = Input.SampleLevel(sampler_Input, uv, 0);
+}

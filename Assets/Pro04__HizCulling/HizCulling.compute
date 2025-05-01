@@ -1,0 +1,126 @@
+#pragma kernel CSMain
+
+struct MeshP
+{
+    float4x4 mat;
+    float4 col;
+};
+
+AppendStructuredBuffer<MeshP> Result;
+uint Count;
+float4 Planes[6];
+float4x4 ViewProjection;
+float4 ScreenSize;
+Texture2D<float> _HizMap;
+SamplerState sampler_HizMap;
+
+bool InSide(float3 pos, float4 panel)
+{
+    float3 normal = abs(panel.xyz);
+    float dis = dot(pos, panel.xyz) - dot(normal, float3(0.5, 0.5, 0.5));
+    return dis < -panel.w;
+}
+
+bool FrustumCulling(float3 pos)
+{
+    bool inside = true;
+    for (uint i = 0; i < 6; i++)
+    {
+        inside = inside && InSide(pos, Planes[i]);
+    }
+    return inside;
+}
+
+float3 TransformToNDC(float3 pos)
+{
+    float4 clipSpace = mul(ViewProjection, float4(pos, 1.0));
+    float3 NDCPos = (clipSpace.xyz / clipSpace.w) * 0.5 + 0.5;
+    return NDCPos;
+}
+
+uint GetMipLevel(float3 minn, float3 maxx)
+{
+    float2 size = (maxx.xy - minn.xy) * ScreenSize.xy;
+    uint2 mipLevel = floor(log2(size));
+    uint mip = clamp(max(mipLevel.x, mipLevel.y), 0, ScreenSize.z);
+    return mip;
+}
+
+bool OcclusionCulling(float3 pos)
+{
+    float3 NDCPos1 = TransformToNDC(pos + float3(0.5, 0.5, 0.5));
+    float3 NDCPos2 = TransformToNDC(pos + float3(-0.5, 0.5, 0.5));
+    float3 NDCPos3 = TransformToNDC(pos + float3(-0.5, -0.5, -0.5));
+    float3 NDCPos4 = TransformToNDC(pos + float3(0.5, -0.5, -0.5));
+    float3 NDCPos5 = TransformToNDC(pos + float3(0.5, 0.5, -0.5));
+    float3 NDCPos6 = TransformToNDC(pos + float3(-0.5, 0.5, -0.5));
+    float3 NDCPos7 = TransformToNDC(pos + float3(-0.5, -0.5, 0.5));
+    float3 NDCPos8 = TransformToNDC(pos + float3(0.5, -0.5, 0.5));
+    
+    float3 Min1 = min(min(NDCPos1, NDCPos2), min(NDCPos3, NDCPos4));
+    float3 Min2 = min(min(NDCPos5, NDCPos6), min(NDCPos7, NDCPos8));
+    float3 Max1 = max(max(NDCPos1, NDCPos2), max(NDCPos3, NDCPos4));
+    float3 Max2 = max(max(NDCPos5, NDCPos6), max(NDCPos7, NDCPos8));
+    
+    float3 Min = min(Min1, Min2);
+    float3 Max = max(Max1, Max2);
+    
+    float mip = GetMipLevel(Min, Max);
+    
+    float d1 = _HizMap.SampleLevel(sampler_HizMap, Min.xy, mip);
+    float d2 = _HizMap.SampleLevel(sampler_HizMap, Max.xy, mip);
+    float d3 = _HizMap.SampleLevel(sampler_HizMap, float2(Min.x, Max.y), mip);
+    float d4 = _HizMap.SampleLevel(sampler_HizMap, float2(Max.x, Min.y), mip);
+    
+    #ifdef UNITY_REVERSED_Z
+        float minZ = min(min(d1, d2), min(d3, d4));
+        return minZ <= Min.z;
+    #else
+        float maxZ = max(max(d1, d2), max(d3, d4));
+    Max.z = (Max.z - 0.5) * 2;
+    return maxZ <= Max.z;
+    #endif
+}
+
+float3 SetWorldPos(uint3 id, uint range)
+{
+    float x = ((float) (id % range) - range / 2) * 2;
+    float z = ((float) (id / range) - range / 2) * 2;
+    
+    return float3(x, 0, z);
+}
+
+float3 rand(uint3 seed)
+{
+    return frac(dot(float3(seed) / Count, float3(12.9898, 78.233, 45.164)) * 43758.5453);
+}
+
+MeshP SetMeshAttr(uint3 id, float3 pos)
+{
+    MeshP m;
+    m.mat = float4x4(1.0, 0.0, 0.0, pos.x,
+                     0.0, 1.0, 0.0, 0.0,
+                     0.0, 0.0, 1.0, pos.z,
+                     0.0, 0.0, 0.0, 1.0);
+    float3 col = lerp(float3(1.0, 0.0, 0.0), float3(0.0, 1.0, 0.0), rand(id).x);
+    m.col = float4(col, 1.0);
+    return m;
+}
+
+[numthreads(64,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    if(id.x >= Count)
+        return;
+    
+    float3 pos = SetWorldPos(id, 100);
+    MeshP m = SetMeshAttr(id, pos);
+    
+    if (FrustumCulling(pos))
+    {
+        if (OcclusionCulling(pos))
+        {
+            Result.Append(m);
+        }
+    }
+}

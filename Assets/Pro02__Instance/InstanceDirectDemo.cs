@@ -42,7 +42,7 @@ public class InstanceDirectDemo : MonoBehaviour
             meshPs[i].color = Color.Lerp(Color.red, Color.blue, Random.value);
         }
 
-        matricesBuffer = new ComputeBuffer(count, 16 * 4 + 4 * 4);
+        matricesBuffer = new ComputeBuffer(count, 16 * 4 + 4 * 4, ComputeBufferType.Append);
         matricesBuffer.SetData(meshPs);
         mat.SetBuffer("_MeshProps", matricesBuffer);
     }
@@ -51,6 +51,5 @@ public class InstanceDirectDemo : MonoBehaviour
     void Update()
     {
         Graphics.DrawMeshInstancedIndirect(mesh, 0, mat, bounds, argsBuffer);
-
     }
 }
